@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+uploads
+.git
+.gitignore
+.pytest_cache
+devhire_system.log
