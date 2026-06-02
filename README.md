@@ -80,3 +80,29 @@ DevHire is an enterprise-grade backend recruitment automation platform built wit
 
 └── docker-compose.yml  # Local multi-container deployment manager
 
+# 🚀 DevHire Core Engine
+
+DevHire is a high-performance, containerized asynchronous backend engine designed to automate hiring pipelines, resume parsing architectures, and applicant tracking. Built with enterprise-grade Python tooling, the platform enforces strict automated testing lines and secure isolated container dependencies.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    Client[Client / Frontend Request] -->|Port 7860/8000| Gateway[FastAPI API Gateway]
+    
+    subgraph Compute Layer [FastAPI Application Bubble]
+        Gateway --> Router[Endpoints / API Routers]
+        Router --> Auth[Jose JWT Security Middleware]
+        Router --> Models[Pydantic Validation / SQLAlchemy Models]
+    end
+
+    subgraph Data Tier
+        Models -->|SQLAlchemy ORM Connection Pool| DB[(PostgreSQL Relational DB)]
+    end
+
+    subgraph DevOps Pipeline [Continuous Integration]
+        GitHub[GitHub Actions Runner] -->|Trigger on Push| Tool[Astral uv Package Sync]
+        Tool --> Test[Pytest Execution Sweep]
+    end
