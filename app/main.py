@@ -1,7 +1,9 @@
 import logging
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
 
 # Import custom exceptions
 from app.exceptions import DevHireException
@@ -21,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger("DevHireCore")
 
 # 2. Initialize App & Register Database Metadata
-from app.db.session import engine
+from app.db.session import engine, get_db
 from app.models.user import Base
 
 # Cleanly initialize schemas directly using the metadata layer
@@ -61,3 +63,12 @@ app.include_router(profiles.router, prefix="/api/v1/profiles", tags=["Profiles"]
 @app.get("/", tags=["Default"])
 def read_root():
     return {"status": "healthy"}
+
+@app.get("/health", tags=["Monitoring"])
+def health_check(db: Session = Depends(get_db)):
+    try:
+        # Execute a simple, low-cost query to verify database connectivity
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": f"disconnected: {str(e)}"}, 500
