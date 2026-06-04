@@ -91,6 +91,7 @@ class UserService:
         return {
             "access_token": access_token,
             "token_type": "bearer",
+            "debug": "NEW_DEPLOYMENT_TEST",
             "user": {
                 "id": user.id,
                 "email": user.email,
