@@ -21,10 +21,16 @@ def test_candidate_profile_and_status_update():
             "role": "recruiter"
         }
     )
+
+    # FIXED LOGIN
     recruiter_login = client.post(
         "/api/v1/auth/login",
-        data={"username": recruiter_email, "password": recruiter_pass}
+        json={
+            "email": recruiter_email,
+            "password": recruiter_pass
+        }
     )
+
     recruiter_token = recruiter_login.json()["access_token"]
     recruiter_headers = {"Authorization": f"Bearer {recruiter_token}"}
 
@@ -40,6 +46,7 @@ def test_candidate_profile_and_status_update():
             "salary": 450000
         }
     )
+
     job_id = job_resp.json()["id"]
 
     # -------------------------------------------------------------
@@ -57,17 +64,22 @@ def test_candidate_profile_and_status_update():
             "role": "candidate"
         }
     )
+
+    # FIXED LOGIN
     candidate_login = client.post(
         "/api/v1/auth/login",
-        data={"username": candidate_email, "password": candidate_pass}
+        json={
+            "email": candidate_email,
+            "password": candidate_pass
+        }
     )
+
     candidate_token = candidate_login.json()["access_token"]
     candidate_headers = {"Authorization": f"Bearer {candidate_token}"}
 
     # -------------------------------------------------------------
-    # 3. TEST: Candidate Creates a Professional Profile
+    # 3. CREATE PROFILE
     # -------------------------------------------------------------
-    # Payload matches CandidateProfileCreate layout requirements
     profile_resp = client.post(
         "/api/v1/profiles/",
         headers=candidate_headers,
@@ -79,6 +91,7 @@ def test_candidate_profile_and_status_update():
         }
     )
 
+    # fallback if route mismatch
     if profile_resp.status_code == 404:
         profile_resp = client.post(
             "/api/v1/profiles",
@@ -94,23 +107,27 @@ def test_candidate_profile_and_status_update():
     assert profile_resp.status_code in [200, 201]
 
     # -------------------------------------------------------------
-    # 4. TEST: Candidate Applies to Job & Recruiter Updates Status
+    # 4. APPLY TO JOB
     # -------------------------------------------------------------
     app_resp = client.post(
         f"/api/v1/applications/{job_id}",
         headers=candidate_headers,
         json={}
     )
+
     assert app_resp.status_code in [200, 201]
     application_id = app_resp.json()["id"]
 
-    # Recruiter updates status via PATCH request
+    # -------------------------------------------------------------
+    # 5. RECRUITER UPDATES STATUS
+    # -------------------------------------------------------------
     patch_resp = client.patch(
         f"/api/v1/applications/{application_id}/status",
         headers=recruiter_headers,
         json={"status": "shortlisted"}
     )
 
+    # fallback if PATCH not allowed
     if patch_resp.status_code == 405:
         patch_resp = client.post(
             f"/api/v1/applications/{application_id}/status",

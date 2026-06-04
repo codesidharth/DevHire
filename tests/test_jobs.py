@@ -21,21 +21,24 @@ def test_create_job_and_apply():
             "role": "recruiter"
         }
     )
-    assert reg_recruiter.status_code == 200
+    assert reg_recruiter.status_code == 201
 
-    # Log in as the recruiter to generate an access token
+    # FIXED: login must be JSON + email
     login_recruiter = client.post(
         "/api/v1/auth/login",
-        data={
-            "username": recruiter_email,
+        json={
+            "email": recruiter_email,
             "password": recruiter_pass
         }
     )
+
     assert login_recruiter.status_code == 200
     recruiter_token = login_recruiter.json()["access_token"]
     recruiter_headers = {"Authorization": f"Bearer {recruiter_token}"}
 
-    # Post a brand new job opening using numerical formatting for salary constraints
+    # -------------------------------------------------------------
+    # STEP 2: CREATE JOB
+    # -------------------------------------------------------------
     job_resp = client.post(
         "/api/v1/jobs/",
         headers=recruiter_headers,
@@ -47,11 +50,12 @@ def test_create_job_and_apply():
             "salary": 650000
         }
     )
+
     assert job_resp.status_code in [200, 201]
     job_id = job_resp.json()["id"]
 
     # -------------------------------------------------------------
-    # STEP 2: Register and Log In a Candidate
+    # STEP 3: REGISTER & LOGIN CANDIDATE
     # -------------------------------------------------------------
     candidate_email = f"applicant_{unique_id}@example.com"
     candidate_pass = "candidate_password123"
@@ -65,28 +69,32 @@ def test_create_job_and_apply():
             "role": "candidate"
         }
     )
-    assert reg_candidate.status_code == 200
+    assert reg_candidate.status_code == 201
 
-    # Log in as the candidate to generate their access token
+    # FIXED: login format
     login_candidate = client.post(
         "/api/v1/auth/login",
-        data={
-            "username": candidate_email,
+        json={
+            "email": candidate_email,
             "password": candidate_pass
         }
     )
+
     assert login_candidate.status_code == 200
     candidate_token = login_candidate.json()["access_token"]
     candidate_headers = {"Authorization": f"Bearer {candidate_token}"}
 
-    # Submit an application by passing the job_id directly in the URL path string
+    # -------------------------------------------------------------
+    # STEP 4: APPLY TO JOB
+    # -------------------------------------------------------------
     app_resp = client.post(
-        f"/api/v1/applications/{job_id}",  # Corrected to Path Parameter syntax
+        f"/api/v1/applications/{job_id}",
         headers=candidate_headers,
-        json={}  # No body payload needed since it maps out of the route path
+        json={}
     )
 
     assert app_resp.status_code in [200, 201]
     app_data = app_resp.json()
+
     assert app_data["job_id"] == job_id
     assert app_data["status"] == "applied"
