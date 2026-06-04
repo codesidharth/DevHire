@@ -1,22 +1,32 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+const ProtectedRoute = ({
+  children,
+  allowedRoles,
+}) => {
+  const { user, loading } = useAuth();
 
-  // If the user isn't logged in at all, redirect them straight back to login screen
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        Loading...
+      </div>
+    );
+  }
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Role-Based Access Control (RBAC): Check if user role matches endpoint clearance criteria
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // If a candidate accidentally accesses a recruiter dashboard, bounce them to /jobs
-    return <Navigate to={user.role === 'recruiter' ? '/dashboard' : '/jobs'} replace />;
+  if (
+    allowedRoles &&
+    !allowedRoles.includes(user.role)
+  ) {
+    return <Navigate to="/login" replace />;
   }
 
-  // If validation clearances pass cleanly, render the requested page view
   return children;
 };
 
