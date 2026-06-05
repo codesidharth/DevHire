@@ -26,6 +26,9 @@ app = FastAPI(
     description="Advanced backend with automated logging and centralized error handling. v2"
 
 )
+@app.get("/debug-routes")
+def debug_routes():
+    return [{"path": r.path, "methods": list(r.methods) if hasattr(r, 'methods') else []} for r in app.routes]
 
 app.add_middleware(
     CORSMiddleware,
