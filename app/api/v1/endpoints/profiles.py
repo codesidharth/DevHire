@@ -10,6 +10,7 @@ from app.schemas.candidate_profile import (
     CandidateProfileResponse,
 )
 from app.services.candidate_profile_service import CandidateProfileService
+from app.repositories.candidate_profile_repository import CandidateProfileRepository
 
 router = APIRouter()
 
@@ -49,7 +50,7 @@ def upload_resume(
 
 
 @router.get("/resume/download")
-def download_resume(
+def download_my_resume(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -62,4 +63,28 @@ def download_resume(
         path=profile.resume_path,
         media_type="application/pdf",
         filename=f"resume_{current_user.id}.pdf"
+    )
+
+
+@router.get("/resume/download/{candidate_id}")
+def download_candidate_resume(
+    candidate_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    if current_user.role != "recruiter":
+        raise HTTPException(status_code=403, detail="Only recruiters can download candidate resumes")
+
+    profile = CandidateProfileRepository.get_by_user_id(db, candidate_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Candidate profile not found")
+    if not profile.resume_path:
+        raise HTTPException(status_code=404, detail="Candidate has no resume")
+    if not os.path.exists(profile.resume_path):
+        raise HTTPException(status_code=404, detail="Resume file not found on server")
+
+    return FileResponse(
+        path=profile.resume_path,
+        media_type="application/pdf",
+        filename=f"candidate_{candidate_id}_resume.pdf"
     )
