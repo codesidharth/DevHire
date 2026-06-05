@@ -1,3 +1,14 @@
+@"
+---
+title: DevHire
+emoji: 💼
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+"@ | Set-Content README.md
+
 \# DevHire Architecture Engine
 
 
