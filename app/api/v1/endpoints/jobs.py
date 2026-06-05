@@ -73,6 +73,28 @@ def search_jobs(
     )
 
 
+from app.models.job import Job  # Ensure this is imported at the top
+
+
+@router.get("/stats")
+def get_recruiter_stats(
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user),
+):
+    require_role(current_user, ["recruiter", "admin"])
+
+    active_jobs = db.query(Job).filter(
+        Job.recruiter_id == current_user.id,
+        Job.is_active == True
+    ).count()
+
+    return {
+        "active_jobs": active_jobs,
+        "applications": 0,  # We can link this to your application service later
+        "interviews": 0
+    }
+
+
 @router.get(
     "/{job_id}",
     response_model=JobResponse,
