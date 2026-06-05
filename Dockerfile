@@ -26,7 +26,7 @@ RUN uv sync --frozen --no-dev
 COPY . .
 
 # Expose FastAPI's network channel interface
-EXPOSE 8000
+EXPOSE 7860
 
 # Fire up the application using uv run to execute within the synchronized environment
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
