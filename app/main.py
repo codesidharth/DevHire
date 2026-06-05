@@ -55,10 +55,10 @@ async def devhire_exception_handler(request: Request, exc: DevHireException):
 
 # 5. Include Routers (Consolidated to main.py to prevent conflicts)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
 app.include_router(applications.router, prefix="/api/v1/applications", tags=["Applications"])
 app.include_router(profiles.router, prefix="/api/v1/profiles", tags=["Profiles"])
-
+app.include_router(jobs.stats_router, prefix="/api/v1/jobs", tags=["Stats"])
+app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["Jobs"])
 @app.get("/", tags=["Default"])
 def read_root():
     return {"status": "healthy"}

@@ -6,22 +6,18 @@ from app.schemas.job import JobCreate, JobUpdate, JobResponse
 from app.services.job_service import JobService
 from app.models.job import Job
 
+# 1. Main router for Job operations
 router = APIRouter()
 
-# 1. Stats Route - Strictly defined
-@router.get("/stats")
-def get_recruiter_stats(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
+# 2. Separate router specifically for stats to avoid collision
+stats_router = APIRouter()
+
+@stats_router.get("/stats")
+def get_recruiter_stats(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
-    active_jobs = db.query(Job).filter(
-        Job.recruiter_id == current_user.id,
-        Job.is_active == True
-    ).count()
+    active_jobs = db.query(Job).filter(Job.recruiter_id == current_user.id, Job.is_active == True).count()
     return {"active_jobs": active_jobs, "applications": 0, "interviews": 0}
 
-# 2. Other Routes
 @router.get("/search", response_model=list[JobResponse])
 def search_jobs(keyword: str, db: Session = Depends(get_db)):
     return JobService.search_jobs(db, keyword)
@@ -36,31 +32,20 @@ def get_jobs(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     return JobService.get_jobs(db, skip, limit)
 
-# 3. ID Routes - The regex pattern [0-9]+ ensures this ONLY matches integers
-# This prevents it from EVER matching "stats"
 @router.get("/{job_id}", response_model=JobResponse)
-def get_job(job_id: int = Path(..., pattern=r"^[0-9]+$"), db: Session = Depends(get_db)):
+def get_job(job_id: int = Path(..., pattern=r"^\d+$"), db: Session = Depends(get_db)):
     job = JobService.get_job_by_id(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
 @router.put("/{job_id}", response_model=JobResponse)
-def update_job(
-    job_id: int = Path(..., pattern=r"^[0-9]+$"),
-    job_data: JobUpdate = ...,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
+def update_job(job_id: int = Path(..., pattern=r"^\d+$"), job_data: JobUpdate = ..., db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
     return JobService.update_job(db, job_id, job_data, current_user)
 
 @router.delete("/{job_id}")
-def delete_job(
-    job_id: int = Path(..., pattern=r"^[0-9]+$"),
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
+def delete_job(job_id: int = Path(..., pattern=r"^\d+$"), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
     JobService.delete_job(db, job_id, current_user)
     return {"message": "Job deleted successfully"}
