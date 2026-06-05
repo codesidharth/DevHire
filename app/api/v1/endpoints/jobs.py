@@ -8,8 +8,9 @@ from app.models.job import Job
 
 router = APIRouter()
 
-# 1. Static Routes (These must come first)
-@router.get("/stats")
+# 1. IMPORTANT: We define a separate sub-router or route specifically
+# for non-ID paths to ensure complete separation from /{job_id}
+@router.get("/stats", tags=["stats"])
 def get_recruiter_stats(
         db: Session = Depends(get_db),
         current_user=Depends(get_current_user),
@@ -35,10 +36,10 @@ def get_jobs(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     return JobService.get_jobs(db, skip, limit)
 
-# 2. Dynamic Routes (Constrained to only match integers)
-@router.get("/{job_id}", response_model=JobResponse)
+# 2. Use a specific route path for IDs that ensures no overlap
+@router.get("/id/{job_id}", response_model=JobResponse)
 def get_job(
-    job_id: int = Path(..., pattern=r"^\d+$"),
+    job_id: int,
     db: Session = Depends(get_db)
 ):
     job = JobService.get_job_by_id(db, job_id)
@@ -46,19 +47,19 @@ def get_job(
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@router.put("/{job_id}", response_model=JobResponse)
+@router.put("/id/{job_id}", response_model=JobResponse)
 def update_job(
-    job_id: int = Path(..., pattern=r"^\d+$"),
-    job_data: JobUpdate = ...,
+    job_id: int,
+    job_data: JobUpdate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     require_role(current_user, ["recruiter", "admin"])
     return JobService.update_job(db, job_id, job_data, current_user)
 
-@router.delete("/{job_id}")
+@router.delete("/id/{job_id}")
 def delete_job(
-    job_id: int = Path(..., pattern=r"^\d+$"),
+    job_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
