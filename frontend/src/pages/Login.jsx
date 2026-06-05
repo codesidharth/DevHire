@@ -14,24 +14,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError('');
     setLoading(true);
 
     try {
-      const params = new URLSearchParams();
-      params.append('username', email);
-      params.append('password', password);
-
-      const response = await API.post('/auth/login', params, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+      // Sending JSON object directly.
+      // Changed 'username' key to 'email' to match backend requirements.
+      const response = await API.post('/auth/login', {
+        email: email,
+        password: password
       });
 
       console.log('LOGIN RESPONSE:', response.data);
 
-      const { access_token, role } = response.data;
+      const { access_token, user } = response.data;
+      const role = user.role;
 
       login(access_token, role);
 
@@ -42,10 +39,8 @@ const Login = () => {
       }
 
     } catch (err) {
-      console.error(err);
-
+      console.error("Login Error:", err);
       setError(
-        err.response?.data?.detail?.[0]?.msg ||
         err.response?.data?.detail ||
         'Invalid email or password'
       );
@@ -56,33 +51,21 @@ const Login = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-4">
-
-      {/* Branding */}
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
           DevHire
         </h1>
-
-        <p className="text-slate-400 mt-2">
-          AI-Powered Job Portal Platform
-        </p>
+        <p className="text-slate-400 mt-2">AI-Powered Job Portal Platform</p>
       </div>
 
-      {/* Login Card */}
       <div className="w-full max-w-md bg-slate-900 p-8 rounded-xl border border-slate-800 shadow-xl">
-
-        <h2 className="text-2xl font-bold text-white mb-6 text-center">
-
-        </h2>
-
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign In</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-
           {error && (
             <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
               {error}
             </div>
           )}
-
           <input
             type="email"
             placeholder="Email Address"
@@ -91,7 +74,6 @@ const Login = () => {
             required
             className="w-full p-3 bg-slate-800 border border-slate-700 rounded text-white focus:ring-2 focus:ring-blue-500 outline-none"
           />
-
           <input
             type="password"
             placeholder="Password"
@@ -100,7 +82,6 @@ const Login = () => {
             required
             className="w-full p-3 bg-slate-800 border border-slate-700 rounded text-white focus:ring-2 focus:ring-blue-500 outline-none"
           />
-
           <button
             type="submit"
             disabled={loading}
@@ -108,21 +89,8 @@ const Login = () => {
           >
             {loading ? 'Authenticating...' : 'Sign In'}
           </button>
-
         </form>
-
-        <div className="mt-6 text-center text-sm text-slate-400">
-          Don't have an account?{' '}
-          <button
-            onClick={() => navigate('/register')}
-            className="text-blue-400 hover:underline font-semibold"
-          >
-            Sign up here
-          </button>
-        </div>
-
       </div>
-
     </div>
   );
 };
