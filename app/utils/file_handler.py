@@ -15,6 +15,9 @@ def save_resume(
         f"{uuid.uuid4()}{extension}"
     )
 
+    # Create directory if it doesn't exist
+    os.makedirs("uploads/resumes", exist_ok=True)
+
     file_path = os.path.join(
         "uploads",
         "resumes",
