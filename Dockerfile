@@ -12,21 +12,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv globally
-RUN pip install --no-cache-dir uv
+# Install dependencies directly with pip (no uv)
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir fastapi uvicorn sqlalchemy psycopg2-binary \
+    passlib[bcrypt] bcrypt==4.0.1 python-jose[cryptography] python-multipart \
+    python-dotenv pydantic[email] email-validator alembic httpx
 
-# Copy dependency tracking files first for caching optimization
-COPY pyproject.toml uv.lock ./
-
-# Synchronize project dependencies cleanly using native uv sync
-# This replaces the system pip workaround and creates a rock-solid ecosystem
-RUN uv sync --frozen --no-dev
-
-# Copy the rest of the application source code files
+# Copy the rest of the application source code
 COPY . .
 
-# Expose FastAPI's network channel interface
+# Expose HuggingFace required port
 EXPOSE 7860
 
-# Fire up the application using uv run to execute within the synchronized environment
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Start the app directly with uvicorn
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
