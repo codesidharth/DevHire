@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.core.permissions import require_role
@@ -8,12 +8,11 @@ from app.models.job import Job
 
 router = APIRouter()
 
-# 1. IMPORTANT: We define a separate sub-router or route specifically
-# for non-ID paths to ensure complete separation from /{job_id}
-@router.get("/stats", tags=["stats"])
+# 1. Stats remains here
+@router.get("/stats")
 def get_recruiter_stats(
-        db: Session = Depends(get_db),
-        current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     require_role(current_user, ["recruiter", "admin"])
     active_jobs = db.query(Job).filter(
@@ -22,6 +21,7 @@ def get_recruiter_stats(
     ).count()
     return {"active_jobs": active_jobs, "applications": 0, "interviews": 0}
 
+# 2. Other endpoints
 @router.get("/search", response_model=list[JobResponse])
 def search_jobs(keyword: str, db: Session = Depends(get_db)):
     return JobService.search_jobs(db, keyword)
@@ -36,33 +36,21 @@ def get_jobs(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     return JobService.get_jobs(db, skip, limit)
 
-# 2. Use a specific route path for IDs that ensures no overlap
-@router.get("/id/{job_id}", response_model=JobResponse)
-def get_job(
-    job_id: int,
-    db: Session = Depends(get_db)
-):
+# 3. RENAMED PATH: Changed from /{job_id} to /details/{job_id}
+@router.get("/details/{job_id}", response_model=JobResponse)
+def get_job(job_id: int, db: Session = Depends(get_db)):
     job = JobService.get_job_by_id(db, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@router.put("/id/{job_id}", response_model=JobResponse)
-def update_job(
-    job_id: int,
-    job_data: JobUpdate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
+@router.put("/details/{job_id}", response_model=JobResponse)
+def update_job(job_id: int, job_data: JobUpdate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
     return JobService.update_job(db, job_id, job_data, current_user)
 
-@router.delete("/id/{job_id}")
-def delete_job(
-    job_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
+@router.delete("/details/{job_id}")
+def delete_job(job_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
     JobService.delete_job(db, job_id, current_user)
     return {"message": "Job deleted successfully"}
