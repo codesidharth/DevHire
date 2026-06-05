@@ -23,7 +23,8 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="DevHire Architecture Engine",
     version="1.0.0",
-    description="Advanced backend with automated logging and centralized error handling."
+    description="Advanced backend with automated logging and centralized error handling. v2"
+
 )
 
 app.add_middleware(
