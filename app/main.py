@@ -26,17 +26,7 @@ app = FastAPI(
     description="Advanced backend with automated logging and centralized error handling. v2"
 
 )
-@app.get("/debug-routes")
-def debug_routes():
-    return [{"path": r.path, "methods": list(r.methods) if hasattr(r, 'methods') else []} for r in app.routes]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.exception_handler(DevHireException)
 async def devhire_exception_handler(request: Request, exc: DevHireException):

@@ -49,6 +49,3 @@ def delete_job(job_id: int = Path(...), db: Session = Depends(get_db), current_u
     JobService.delete_job(db, job_id, current_user)
     return {"message": "Job deleted successfully"}
 
-@stats_router.get("/stats-debug")
-def stats_debug():
-    return {"message": "stats router is working"}
