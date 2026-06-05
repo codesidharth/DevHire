@@ -4,10 +4,11 @@ import axios from "axios";
 const API = "https://codesidharth-devhire.hf.space/api/v1";
 
 const statusColors = {
-  pending:   "bg-yellow-900/40 border-yellow-700/40 text-yellow-300",
-  reviewed:  "bg-blue-900/40 border-blue-700/40 text-blue-300",
-  interview: "bg-purple-900/40 border-purple-700/40 text-purple-300",
-  rejected:  "bg-red-900/40 border-red-700/40 text-red-300",
+  applied:     "bg-blue-900/40 border-blue-700/40 text-blue-300",
+  reviewing:   "bg-yellow-900/40 border-yellow-700/40 text-yellow-300",
+  shortlisted: "bg-purple-900/40 border-purple-700/40 text-purple-300",
+  rejected:    "bg-red-900/40 border-red-700/40 text-red-300",
+  hired:       "bg-emerald-900/40 border-emerald-700/40 text-emerald-300",
 };
 
 const RecruiterDashboard = () => {
@@ -18,7 +19,6 @@ const RecruiterDashboard = () => {
   const [successMsg, setSuccessMsg] = useState("");
   const [form, setForm] = useState({ title: "", description: "", location: "", salary: "" });
 
-  // Applicants panel
   const [selectedJob, setSelectedJob] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [loadingApplicants, setLoadingApplicants] = useState(false);
@@ -55,8 +55,6 @@ const RecruiterDashboard = () => {
     try {
       const res = await axios.get(`${API}/applications/job/${job.id}`, { headers });
       setApplicants(res.data || []);
-
-      // Fetch each candidate's profile
       const profiles = {};
       await Promise.all(
         res.data.map(async (app) => {
@@ -237,7 +235,7 @@ const RecruiterDashboard = () => {
           </div>
         </div>
 
-        {/* Two column layout — Jobs + Applicants */}
+        {/* Two column layout */}
         <div className="grid md:grid-cols-2 gap-8">
 
           {/* My Jobs */}
@@ -304,11 +302,9 @@ const RecruiterDashboard = () => {
               <div className="space-y-4">
                 {applicants.map(app => {
                   const profile = candidateProfiles[app.candidate_id];
-                  const statusKey = app.status?.toLowerCase() || "pending";
+                  const statusKey = app.status?.toLowerCase() || "applied";
                   return (
                     <div key={app.id} className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-
-                      {/* Candidate info */}
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="font-semibold text-white">
@@ -331,13 +327,10 @@ const RecruiterDashboard = () => {
                             </>
                           )}
                         </div>
-
-                        {/* Resume download */}
                         {profile?.has_resume ? (
                           <button
                             onClick={() => handleDownloadResume(app.candidate_id, profile?.full_name)}
-                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition shrink-0 ml-2"
-                          >
+                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition shrink-0 ml-2">
                             ⬇ Resume
                           </button>
                         ) : (
@@ -347,19 +340,20 @@ const RecruiterDashboard = () => {
 
                       {/* Status update */}
                       <div className="flex items-center gap-2 pt-3 border-t border-slate-800">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full border capitalize ${statusColors[statusKey] || statusColors.pending}`}>
-                          {app.status || "pending"}
+                        <span className={`text-xs font-medium px-2 py-1 rounded-full border capitalize ${statusColors[statusKey] || statusColors.applied}`}>
+                          {app.status || "applied"}
                         </span>
                         <select
-                          value={app.status || "pending"}
+                          value={app.status || "applied"}
                           disabled={updatingStatus === app.id}
                           onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
                           className="ml-auto bg-slate-800 border border-slate-700 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
                         >
-                          <option value="pending">Pending</option>
-                          <option value="reviewed">Reviewed</option>
-                          <option value="interview">Interview</option>
+                          <option value="applied">Applied</option>
+                          <option value="reviewing">Reviewing</option>
+                          <option value="shortlisted">Shortlisted</option>
                           <option value="rejected">Rejected</option>
+                          <option value="hired">Hired</option>
                         </select>
                       </div>
                     </div>
@@ -369,7 +363,6 @@ const RecruiterDashboard = () => {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

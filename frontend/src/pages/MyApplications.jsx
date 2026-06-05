@@ -2,13 +2,12 @@ import React, { useEffect, useState } from "react";
 import API from "../api/axios";
 
 const statusColors = {
-  pending:   "bg-yellow-900/40 border-yellow-700/40 text-yellow-300",
-  reviewed:  "bg-blue-900/40 border-blue-700/40 text-blue-300",
-  interview: "bg-purple-900/40 border-purple-700/40 text-purple-300",
-  rejected:  "bg-red-900/40 border-red-700/40 text-red-300",
-  accepted:  "bg-emerald-900/40 border-emerald-700/40 text-emerald-300",
+  applied:     "bg-blue-900/40 border-blue-700/40 text-blue-300",
+  reviewing:   "bg-yellow-900/40 border-yellow-700/40 text-yellow-300",
+  shortlisted: "bg-purple-900/40 border-purple-700/40 text-purple-300",
+  rejected:    "bg-red-900/40 border-red-700/40 text-red-300",
+  hired:       "bg-emerald-900/40 border-emerald-700/40 text-emerald-300",
 };
-
 const MyApplications = () => {
   const [applications, setApplications] = useState([]);
   const [jobsMap, setJobsMap] = useState({});
@@ -57,7 +56,7 @@ const MyApplications = () => {
           <div className="space-y-4">
             {applications.map((app) => {
               const job = jobsMap[app.job_id];
-              const statusKey = app.status?.toLowerCase() || "pending";
+              const statusKey = app.status?.toLowerCase() || "applied";
               return (
                 <div key={app.id} className="bg-slate-900 border border-slate-800 rounded-xl p-6">
                   <div className="flex items-start justify-between">
