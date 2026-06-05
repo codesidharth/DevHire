@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Path # 1. Import Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 from app.api.deps import get_db, get_current_user
 from app.core.permissions import require_role
@@ -8,6 +8,7 @@ from app.models.job import Job
 
 router = APIRouter()
 
+# 1. Static Routes (These must come first)
 @router.get("/stats")
 def get_recruiter_stats(
         db: Session = Depends(get_db),
@@ -20,6 +21,10 @@ def get_recruiter_stats(
     ).count()
     return {"active_jobs": active_jobs, "applications": 0, "interviews": 0}
 
+@router.get("/search", response_model=list[JobResponse])
+def search_jobs(keyword: str, db: Session = Depends(get_db)):
+    return JobService.search_jobs(db, keyword)
+
 @router.post("/", response_model=JobResponse)
 def create_job(job: JobCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     require_role(current_user, ["recruiter", "admin"])
@@ -30,14 +35,10 @@ def get_jobs(page: int = 1, limit: int = 10, db: Session = Depends(get_db)):
     skip = (page - 1) * limit
     return JobService.get_jobs(db, skip, limit)
 
-@router.get("/search", response_model=list[JobResponse])
-def search_jobs(keyword: str, db: Session = Depends(get_db)):
-    return JobService.search_jobs(db, keyword)
-
-# 2. Add the Path(..., gt=0) constraint
+# 2. Dynamic Routes (Constrained to only match integers)
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(
-    job_id: int = Path(..., gt=0),
+    job_id: int = Path(..., pattern=r"^\d+$"),
     db: Session = Depends(get_db)
 ):
     job = JobService.get_job_by_id(db, job_id)
@@ -47,7 +48,7 @@ def get_job(
 
 @router.put("/{job_id}", response_model=JobResponse)
 def update_job(
-    job_id: int = Path(..., gt=0),
+    job_id: int = Path(..., pattern=r"^\d+$"),
     job_data: JobUpdate = ...,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
@@ -57,7 +58,7 @@ def update_job(
 
 @router.delete("/{job_id}")
 def delete_job(
-    job_id: int = Path(..., gt=0),
+    job_id: int = Path(..., pattern=r"^\d+$"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
