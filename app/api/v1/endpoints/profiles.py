@@ -22,4 +22,44 @@ def create_profile(
     return CandidateProfileService.create_profile(db, profile_data, current_user)
 
 
-@router.get("/me", response_model=Candidat
+@router.get("/me", response_model=CandidateProfileResponse)
+def get_my_profile(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return CandidateProfileService.get_my_profile(db, current_user)
+
+
+@router.put("/me", response_model=CandidateProfileResponse)
+def update_profile(
+    profile_data: CandidateProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return CandidateProfileService.update_profile(db, profile_data, current_user)
+
+
+@router.post("/upload-resume", response_model=CandidateProfileResponse)
+def upload_resume(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    return CandidateProfileService.upload_resume(db, file, current_user)
+
+
+@router.get("/resume/download")
+def download_resume(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    profile = CandidateProfileService.get_my_profile(db, current_user)
+    if not profile.resume_path:
+        raise HTTPException(status_code=404, detail="No resume uploaded")
+    if not os.path.exists(profile.resume_path):
+        raise HTTPException(status_code=404, detail="Resume file not found on server")
+    return FileResponse(
+        path=profile.resume_path,
+        media_type="application/pdf",
+        filename=f"resume_{current_user.id}.pdf"
+    )
