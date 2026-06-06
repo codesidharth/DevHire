@@ -37,7 +37,7 @@ const Navbar = () => {
           }
           className="cursor-pointer text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent"
         >
-          DevHire Matrix
+          DevHire
         </div>
 
         <div className="flex items-center gap-6">

@@ -16,34 +16,17 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
-      // Sending JSON object directly.
-      // Changed 'username' key to 'email' to match backend requirements.
-      const response = await API.post('/auth/login', {
-        email: email,
-        password: password
-      });
-
-      console.log('LOGIN RESPONSE:', response.data);
-
+      const response = await API.post('/auth/login', { email, password });
       const { access_token, user } = response.data;
-      const role = user.role;
-
-      login(access_token, role);
-
-      if (role === 'recruiter') {
+      login(access_token, user.role);
+      if (user.role === 'recruiter') {
         navigate('/recruiter-dashboard');
       } else {
         navigate('/jobs');
       }
-
     } catch (err) {
-      console.error("Login Error:", err);
-      setError(
-        err.response?.data?.detail ||
-        'Invalid email or password'
-      );
+      setError(err.response?.data?.detail || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
@@ -62,9 +45,7 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-white mb-6 text-center">Sign In</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">
-              {error}
-            </div>
+            <div className="text-red-400 text-sm bg-red-900/20 p-3 rounded">{error}</div>
           )}
           <input
             type="email"
@@ -90,6 +71,16 @@ const Login = () => {
             {loading ? 'Authenticating...' : 'Sign In'}
           </button>
         </form>
+
+        <div className="mt-6 text-center text-sm text-slate-400">
+          Don't have an account?{' '}
+          <button
+            onClick={() => navigate('/register')}
+            className="text-blue-400 hover:underline font-semibold"
+          >
+            Sign up here
+          </button>
+        </div>
       </div>
     </div>
   );
