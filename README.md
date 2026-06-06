@@ -9,6 +9,7 @@ pinned: false
 
 A full-stack recruitment platform built with **FastAPI**, **PostgreSQL**, and **React**. Features role-based access for candidates and recruiters with a complete hiring workflow.
 
+**Live App:** https://dev-hire-taupe.vercel.app  
 **Live API:** https://codesidharth-devhire.hf.space/docs
 
 ---
